@@ -24,7 +24,7 @@ if st.button("Login"):
             username=username,
             password=password,
             security_token=security_token,
-            domain=domain
+            domain=login
         )
         st.session_state.sf = sf
         st.session_state.logged_in = True
