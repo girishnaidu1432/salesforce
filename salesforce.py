@@ -1,21 +1,23 @@
 import streamlit as st
 from simple_salesforce import Salesforce, SalesforceAuthenticationFailed
 import pandas as pd
+import requests
 
 # UI Title
 st.title("🔐 Salesforce Login and Data Fetcher")
 
-# User Input for Salesforce Login
+# Salesforce credentials
 username = st.text_input("Username", placeholder="Enter Salesforce username")
 password = st.text_input("Password", placeholder="Enter Salesforce password", type="password")
 security_token = st.text_input("Security Token", placeholder="Enter Salesforce security token", type="password")
-domain = st.selectbox("Select Domain", ["login", "test"])  # login for prod, test for sandbox
+domain = st.selectbox("Select Domain", ["login", "test"])  # login = production, test = sandbox
 
-# Store Salesforce session in Streamlit state
+# Initialize session state
 if "sf" not in st.session_state:
     st.session_state.sf = None
+    st.session_state.logged_in = False
 
-# Login Button
+# Login button
 if st.button("Login"):
     try:
         sf = Salesforce(
@@ -25,22 +27,27 @@ if st.button("Login"):
             domain=domain
         )
         st.session_state.sf = sf
-        st.success("✅ Login Successful!")
+        st.session_state.logged_in = True
+        st.success("✅ Salesforce Login Successful!")
     except SalesforceAuthenticationFailed:
         st.session_state.sf = None
-        st.error("❌ Login Failed! Check your credentials.")
+        st.session_state.logged_in = False
+        st.error("❌ Salesforce Login Failed. Please check your credentials.")
 
-# Fetch data after successful login
-if st.session_state.sf:
+# Fetch data button (only active if logged in)
+if st.session_state.logged_in:
     if st.button("Fetch Data"):
         try:
-            # Example: Replace this SOQL query with your actual Salesforce object/query
-            query = "SELECT Id, Name FROM Account LIMIT 10"
-            result = st.session_state.sf.query(query)
-            records = result["records"]
+            # Call your FastAPI backend
+            api_url = "http://localhost:8000/get-full-csv"  # Update with your deployed API URL if needed
+            response = requests.get(api_url)
 
-            # Convert to DataFrame for display
-            df = pd.DataFrame(records).drop(columns="attributes")
-            st.dataframe(df)
+            if response.status_code == 200:
+                data = response.json()
+                df_api = pd.DataFrame(data)
+                st.success("✅ Data Fetched from FastAPI API!")
+                st.dataframe(df_api)
+            else:
+                st.error(f"❌ API responded with status code: {response.status_code}")
         except Exception as e:
-            st.error(f"Error fetching data: {e}")
+            st.error(f"❌ Error fetching from API: {e}")
