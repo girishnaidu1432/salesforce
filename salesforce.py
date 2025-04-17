@@ -20,11 +20,12 @@ if "sf" not in st.session_state:
 # Login button
 if st.button("Login"):
     try:
+        # Use the user inputs for credentials
         sf = Salesforce(
-            username="username",
-            password="password",
-            security_token="security_token",
-            domain="login"
+            username=username,
+            password=password,
+            security_token=security_token,
+            domain=domain  # Use the selected domain
         )
         st.session_state.sf = sf
         st.session_state.logged_in = True
