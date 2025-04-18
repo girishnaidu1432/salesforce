@@ -40,7 +40,7 @@ if st.session_state.logged_in:
     if st.button("Fetch Data"):
         try:
             # Call your FastAPI backend
-            api_url = "http://127.0.0.1:8000/get-full-csv"  # Update with your deployed API URL if needed
+            api_url = "http://192.168.0.1:8000/get-full-csv"  # Update with your deployed API URL if needed
             response = requests.get(api_url)
 
             if response.status_code == 200:
